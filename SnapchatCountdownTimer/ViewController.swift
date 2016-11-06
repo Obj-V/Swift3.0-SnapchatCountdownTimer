@@ -19,8 +19,9 @@ class ViewController: UIViewController {
         
         let pieTimerFrame = CGRect(x: pieX, y: pieY, width: pieWidth, height: pieWidth)
         var pieTimer = PieTimerView(frame: pieTimerFrame, totalTimer: 50)
-        
         self.view.addSubview(pieTimer)
+        
+        pieTimer.startTimer(outerRingDuration: 5, innerPieDuration: 60)
     }
 
     override func didReceiveMemoryWarning() {

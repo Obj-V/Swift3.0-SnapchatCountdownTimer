@@ -10,27 +10,56 @@ import UIKit
 
 class PieTimerView: UIView {
     
-    //MARK : public
-    func startTimer() {
+    //MARK : Timer
+    private var timer: Timer?
+    func startTimer(outerRingDuration:Int!, innerPieDuration:Int!) {
+        ringTotalTime = outerRingDuration
+        pieTotalTime = innerPieDuration
         
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(timeInterval: 1, target:self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
     }
     
     func stopTimer() {
-        
+        timer?.invalidate()
     }
     
     //MARK : private vars
-    private var totalTimer : Int! {
-        didSet {}
+    private var ringTotalTime : Int!
+    private var ringCountdownTime : Int! = 0 {
+        didSet {
+            if ringCountdownTime > ringTotalTime {
+                ringCountdownTime = 0
+                outerRingLayer.strokeEnd = 1
+            } else {
+                let progressRing = Float(ringCountdownTime) / Float(ringTotalTime)
+                outerRingLayer.strokeEnd = CGFloat(1 - progressRing)
+            }
+        }
     }
-    private var countdownTimer : Int! = 0 {
-        didSet {}
+    
+    private var pieTotalTime : Int!
+    private var pieCountdownTime : Int! = 0 {
+        didSet {
+            if pieCountdownTime == pieTotalTime {
+                stopTimer()
+            }
+            
+            let endRadiusAngle = CGFloat(2*M_PI) * CGFloat(pieCountdownTime) / CGFloat(pieTotalTime) + startAngle
+            innerPieLayer.path = self.innerPiePath(startAngle: startAngle, endAngle: endRadiusAngle)
+        }
+    }
+    
+    @objc func updateTimer() {
+        print(ringCountdownTime)
+        pieCountdownTime = pieCountdownTime + 1
+        ringCountdownTime =  ringCountdownTime + 1
     }
     
     //MARK : Apple methods
     convenience init(frame pieframe:CGRect, totalTimer:Int) {
         self.init(frame: pieframe)
-        self.totalTimer = totalTimer
+        self.ringTotalTime = totalTimer
     }
     
     override func layoutSubviews() {
@@ -73,12 +102,12 @@ class PieTimerView: UIView {
             outerRingLayer.lineWidth = outerRingLineWidth
             outerRingLayer.fillColor = nil
             outerRingLayer.strokeStart = 0
-            outerRingLayer.strokeEnd = 1 - 0.2
+            outerRingLayer.strokeEnd = 1
             
-            let ringPath = UIBezierPath(ovalIn: self.bounds.insetBy(dx: outerRingLineWidth, dy: outerRingLineWidth))
+            let ringPath = UIBezierPath(ovalIn: self.bounds.insetBy(dx: outerRingLineWidth, dy: outerRingLineWidth)).reversing()
             outerRingLayer.path = ringPath.cgPath
             outerRingLayer.transform = CATransform3DMakeRotation(CGFloat(-1*M_PI_2), 0, 0, 1)
-            
+
             self.layer.addSublayer(outerRingLayer)
         }
     }
@@ -86,29 +115,33 @@ class PieTimerView: UIView {
     //MARK : inner pie
     private var innerPieLayer : CAShapeLayer!
     private let startAngle : CGFloat! = CGFloat(-1*M_PI_2)
+    private var endAngle : CGFloat! = CGFloat(M_PI_4)
     private func setupInnerPie() {
         if innerPieLayer == nil {
             innerPieLayer = CAShapeLayer()
             innerPieLayer.frame = self.layer.bounds
             innerPieLayer.strokeColor = nil
             innerPieLayer.fillColor = UIColor.lightGray.cgColor
-            
-            let centerPoint = CGPoint(x: self.bounds.width/2, y: self.bounds.height/2)
-            let innerPieRadius:CGFloat! = self.bounds.width/2 - (2*outerRingLineWidth)
-            
-            let initialPointX = centerPoint.x + (innerPieRadius * CGFloat(cos(startAngle)))
-            let initialPointY = centerPoint.y + (innerPieRadius * CGFloat(sin(startAngle)))
-            
-            let innerPiePath = UIBezierPath()
-            innerPiePath.move(to: centerPoint)
-            innerPiePath.addLine(to: CGPoint(x: initialPointX, y: initialPointY))
-            innerPiePath.addArc(withCenter: centerPoint, radius: innerPieRadius, startAngle: CGFloat(startAngle), endAngle: CGFloat(M_PI_4), clockwise: true)
-            innerPiePath.close()
-            
-            innerPieLayer.path = innerPiePath.cgPath
+            innerPieLayer.path = self.innerPiePath(startAngle: startAngle, endAngle: startAngle)
             
             self.layer.addSublayer(innerPieLayer)
         }
+    }
+    
+    private func innerPiePath(startAngle:CGFloat, endAngle:CGFloat) -> CGPath {
+        let centerPoint = CGPoint(x: self.bounds.width/2, y: self.bounds.height/2)
+        let innerPieRadius:CGFloat! = self.bounds.width/2 - (2*outerRingLineWidth)
+        
+        let initialPointX = centerPoint.x + (innerPieRadius * CGFloat(cos(startAngle)))
+        let initialPointY = centerPoint.y + (innerPieRadius * CGFloat(sin(startAngle)))
+        
+        let innerPiePath = UIBezierPath()
+        innerPiePath.move(to: centerPoint)
+        innerPiePath.addLine(to: CGPoint(x: initialPointX, y: initialPointY))
+        innerPiePath.addArc(withCenter: centerPoint, radius: innerPieRadius, startAngle: startAngle, endAngle: endAngle, clockwise: false)
+        innerPiePath.close()
+        
+        return innerPiePath.cgPath
     }
 
 }
