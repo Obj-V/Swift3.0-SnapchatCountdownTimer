@@ -18,7 +18,7 @@ class ViewController: UIViewController {
         let pieY = self.view.center.y - self.view.bounds.width/4
         
         let pieTimerFrame = CGRect(x: pieX, y: pieY, width: pieWidth, height: pieWidth)
-        var pieTimer = PieTimerView(frame: pieTimerFrame, totalTimer: 50)
+        let pieTimer = PieTimerView(frame: pieTimerFrame)
         self.view.addSubview(pieTimer)
         
         pieTimer.startTimer(outerRingDuration: 5, innerPieDuration: 60)
@@ -28,7 +28,5 @@ class ViewController: UIViewController {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-
-
 }
 

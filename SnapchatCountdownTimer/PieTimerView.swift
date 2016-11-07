@@ -24,6 +24,12 @@ class PieTimerView: UIView {
         timer?.invalidate()
     }
     
+    @objc func updateTimer() {
+        print(ringCountdownTime)
+        pieCountdownTime = pieCountdownTime + 1
+        ringCountdownTime =  ringCountdownTime + 1
+    }
+    
     //MARK : private vars
     private var ringTotalTime : Int!
     private var ringCountdownTime : Int! = 0 {
@@ -50,18 +56,7 @@ class PieTimerView: UIView {
         }
     }
     
-    @objc func updateTimer() {
-        print(ringCountdownTime)
-        pieCountdownTime = pieCountdownTime + 1
-        ringCountdownTime =  ringCountdownTime + 1
-    }
-    
     //MARK : Apple methods
-    convenience init(frame pieframe:CGRect, totalTimer:Int) {
-        self.init(frame: pieframe)
-        self.ringTotalTime = totalTimer
-    }
-    
     override func layoutSubviews() {
         super.layoutSubviews()
         self.createPieChart()
@@ -115,20 +110,24 @@ class PieTimerView: UIView {
     //MARK : inner pie
     private var innerPieLayer : CAShapeLayer!
     private let startAngle : CGFloat! = CGFloat(-1*M_PI_2)
-    private var endAngle : CGFloat! = CGFloat(M_PI_4)
+    private var endAngle : CGFloat! = CGFloat(-1*M_PI_2)
     private func setupInnerPie() {
         if innerPieLayer == nil {
             innerPieLayer = CAShapeLayer()
             innerPieLayer.frame = self.layer.bounds
             innerPieLayer.strokeColor = nil
             innerPieLayer.fillColor = UIColor.lightGray.cgColor
-            innerPieLayer.path = self.innerPiePath(startAngle: startAngle, endAngle: startAngle)
+            innerPieLayer.path = self.innerPiePath(startAngle: startAngle, endAngle: endAngle)
             
             self.layer.addSublayer(innerPieLayer)
         }
     }
     
     private func innerPiePath(startAngle:CGFloat, endAngle:CGFloat) -> CGPath {
+        if startAngle == endAngle {
+            return UIBezierPath(ovalIn:self.bounds.insetBy(dx: 2*outerRingLineWidth, dy: 2*outerRingLineWidth)).cgPath
+        }
+        
         let centerPoint = CGPoint(x: self.bounds.width/2, y: self.bounds.height/2)
         let innerPieRadius:CGFloat! = self.bounds.width/2 - (2*outerRingLineWidth)
         
