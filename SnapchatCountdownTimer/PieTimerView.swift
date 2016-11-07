@@ -11,6 +11,7 @@ import UIKit
 class PieTimerView: UIView {
     
     //MARK : Timer
+    //Note that you can use a media time callback instead of this nstimer/timer. 
     private var timer: Timer?
     func startTimer(outerRingDuration:Int!, innerPieDuration:Int!) {
         ringTotalTime = outerRingDuration
@@ -25,7 +26,6 @@ class PieTimerView: UIView {
     }
     
     @objc func updateTimer() {
-        print(ringCountdownTime)
         pieCountdownTime = pieCountdownTime + 1
         ringCountdownTime =  ringCountdownTime + 1
     }
